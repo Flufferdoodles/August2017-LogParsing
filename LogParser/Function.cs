@@ -37,7 +37,7 @@ namespace LogParser {
             // Level 3: Parse log records
             var athenaFriendlyJson = ParseLog(decompressedData);
 
-            // Level 4: Save data to S3
+            // Level 3: Save data to S3
             PutObject(athenaFriendlyJson);
 
             // Level 5: Create athena schema to query data
@@ -65,6 +65,7 @@ namespace LogParser {
         }
 
         private static IEnumerable<string> ParseLog(string data) {
+            
             throw new NotImplementedException();
         }
 
