@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Text;
 using Amazon.Lambda.Core;
 using Amazon.S3;
 using Amazon.S3.Model;
@@ -33,17 +34,34 @@ namespace LogParser {
             var decompressedData = DecompressLogData(logsData);
             Console.WriteLine($"THIS IS THE DECODED, UNCOMPRESSED DATA: {decompressedData}");
             
-            // Level 2: Parse log records
+            // Level 3: Parse log records
             var athenaFriendlyJson = ParseLog(decompressedData);
 
-            // Level 3: Save data to S3
+            // Level 4: Save data to S3
             PutObject(athenaFriendlyJson);
 
-            // Level 4: Create athena schema to query data
+            // Level 5: Create athena schema to query data
         }
         
         public static string DecompressLogData(string value) {
-            throw new NotImplementedException();
+
+            using (var streamReader = new GZipStream(new MemoryStream(Convert.FromBase64String(value)), CompressionMode.Decompress, false)){
+                const int size = 4096;
+                byte[] buffer = new byte[size];
+
+                using (MemoryStream memory = new MemoryStream()) {
+                    int count = 0;
+                    do
+                    {
+                        count = streamReader.Read(buffer, 0, size);
+                        if (count > 0) {
+                            memory.Write(buffer, 0, count);
+                        }
+                    } while (count > 0);
+                    return Encoding.UTF8.GetString(memory.ToArray());
+                }
+            }
+
         }
 
         private static IEnumerable<string> ParseLog(string data) {
